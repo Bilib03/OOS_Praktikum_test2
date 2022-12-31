@@ -36,5 +36,4 @@ public class SuperController {
             System.out.println(result.get());
         }
     }
-
 }

@@ -2,8 +2,8 @@
   {
     "CLASSNAME": "Payment",
     "INSTANCE": {
-      "incomingInterest": 0.1,
-      "outgoingInterest": 0.1,
+      "incomingInterest": 0.025,
+      "outgoingInterest": 0.5,
       "date": "21.22.2022",
       "amount": 100.0,
       "description": "wurst"

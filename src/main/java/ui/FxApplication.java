@@ -5,11 +5,10 @@ import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.*;
 import javafx.application.Application;
-//import javafx.*;
+import java.io.IOException;
 
-import java.io.IOException;
 /*
-import java.io.IOException;
+import javafx.*;
 import java.lang.ClassLoader;
 import java.lang.Object;
 import java.lang.Class;

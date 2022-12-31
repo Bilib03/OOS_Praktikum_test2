@@ -22,7 +22,7 @@ public class PrivateBankTest {
 
 
     // Laptop:
-    String directoryName = "C:\\Users\\Philipp\\IdeaProjects\\praktikum\\src\\main\\java\\bank\\Accounts";
+    String directoryName = "C:\\Users\\phili\\IdeaProjects\\OOS_Praktikum_test2\\src\\main\\java\\bank\\Accounts";
 
     @BeforeEach
     public void init() {

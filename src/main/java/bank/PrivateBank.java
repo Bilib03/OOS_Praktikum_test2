@@ -440,8 +440,8 @@ public class PrivateBank implements Bank {
             throw new AccountDoesNotExistException("Der Account existiert nicht.");
         }else{
             accountsToTransactions.remove(account);
-            File f=new File(directoryName + account + ".json");
-            f.delete();
+            File f=new File(directoryName + "/" + account + ".json");
+            if(f.delete())System.out.println("Hat geklappt");
         }
     }
 
