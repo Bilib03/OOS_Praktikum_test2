@@ -441,7 +441,8 @@ public class PrivateBank implements Bank {
         }else{
             accountsToTransactions.remove(account);
             File f=new File(directoryName + "/" + account + ".json");
-            if(f.delete())System.out.println("Hat geklappt");
+            //if(f.delete())System.out.println("Hat geklappt");
+            f.delete();
         }
     }
 

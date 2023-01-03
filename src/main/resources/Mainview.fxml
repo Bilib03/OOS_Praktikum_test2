@@ -19,13 +19,11 @@
          <contextMenu>
             <ContextMenu>
               <items>
-                <MenuItem mnemonicParsing="false" text="Delete" />
-                  <MenuItem mnemonicParsing="false" text="Delete" />
-                  <MenuItem mnemonicParsing="false" text="Unspecified Action" />
+                  <MenuItem fx:id="menuItem2" mnemonicParsing="false" text="Auswählen" />
+                  <MenuItem fx:id="menuItem1" mnemonicParsing="false" text="Löschen" />
               </items>
             </ContextMenu>
          </contextMenu></ListView>
-      <Button layoutX="257.0" layoutY="351.0" mnemonicParsing="false" text="Viewswitcher" />
-      <Button layoutX="239.0" layoutY="317.0" mnemonicParsing="false" onAction="#textInputDialog" text="Account hinzufügen" />
+      <Button fx:id="button_hinzufügen" layoutX="239.0" layoutY="317.0" mnemonicParsing="false" onAction="#textInputDialog" text="Account hinzufügen" />
    </children>
 </AnchorPane>

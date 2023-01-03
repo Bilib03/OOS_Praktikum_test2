@@ -9,22 +9,22 @@
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.Accountview">
    <children>
-      <Label fx:id="accountBalance" alignment="CENTER" layoutX="221.0" layoutY="42.0" prefHeight="46.0" prefWidth="158.0" text="kontostand" />
-      <Button layoutX="8.0" layoutY="8.0" mnemonicParsing="false" onAction="#switchToMainview" text="Zurück" />
-      <Label fx:id="accountName" layoutX="264.0" layoutY="25.0" text="accountname" />
-      <ListView fx:id="transactionList" layoutX="65.0" layoutY="101.0" prefHeight="278.0" prefWidth="470.0">
+      <Label fx:id="kontostand" alignment="CENTER" layoutX="5.0" layoutY="29.0" prefHeight="31.0" prefWidth="594.0" text="kontostand" />
+      <Button fx:id="zurück" layoutX="14.0" layoutY="356.0" mnemonicParsing="false" onAction="#switchToMainview" text="Zurück" />
+      <Label fx:id="accountName" alignment="CENTER" layoutX="4.0" layoutY="4.0" prefHeight="31.0" prefWidth="594.0" text="accountname" />
+      <ListView fx:id="transactionList" layoutX="66.0" layoutY="61.0" prefHeight="278.0" prefWidth="470.0">
          <contextMenu>
-            <ContextMenu>
+            <ContextMenu fx:id="contextMenu">
               <items>
-                <MenuItem mnemonicParsing="false" onAction="#confirmationDialog" text="Löschen" />
+                <MenuItem fx:id="menuItemLöschen" mnemonicParsing="false" text="Löschen" />
               </items>
             </ContextMenu>
          </contextMenu>
       </ListView>
-      <Button layoutX="535.0" layoutY="148.0" mnemonicParsing="false" onAction="#showTransactionsSortedAsc" prefHeight="46.0" prefWidth="53.0" text="Asc" />
-      <Button layoutX="535.0" layoutY="194.0" mnemonicParsing="false" onAction="#showTransactionsSortedDesc" prefHeight="46.0" prefWidth="53.0" text="Desc" />
-      <Button layoutX="535.0" layoutY="286.0" mnemonicParsing="false" onAction="#showTransactionsByTypeNeg" prefHeight="46.0" prefWidth="53.0" text="Neg" />
-      <Button layoutX="535.0" layoutY="240.0" mnemonicParsing="false" onAction="#showTransactionsByTypePos" prefHeight="46.0" prefWidth="53.0" text="Pos" />
-      <Button layoutX="35.0" layoutY="367.0" mnemonicParsing="false" onAction="#addTransactionDialog" text="Transaktion anlegen" />
+      <Button layoutX="535.0" layoutY="67.0" mnemonicParsing="false" onAction="#sortAsc" prefHeight="46.0" prefWidth="53.0" text="Asc" />
+      <Button layoutX="535.0" layoutY="113.0" mnemonicParsing="false" onAction="#sortDesc" prefHeight="46.0" prefWidth="53.0" text="Desc" />
+      <Button layoutX="535.0" layoutY="205.0" mnemonicParsing="false" onAction="#sortTypeNeg" prefHeight="46.0" prefWidth="53.0" text="Neg" />
+      <Button layoutX="535.0" layoutY="159.0" mnemonicParsing="false" onAction="#sortTypePos" prefHeight="46.0" prefWidth="53.0" text="Pos" />
+      <Button fx:id="anlegen" layoutX="240.0" layoutY="356.0" mnemonicParsing="false" onAction="#transactionAnlegen" text="Transaktion anlegen" />
    </children>
 </AnchorPane>

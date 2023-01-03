@@ -17,7 +17,9 @@ import java.lang.Class;
 
 public class FxApplication extends Application{
 
-    public static void main(String[] args){launch(args);}
+    public static void main(String[] args){
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage)throws IOException {

@@ -28,7 +28,7 @@ public class Accountview extends SuperController implements Initializable {
     private String account = "account1";
 
     @FXML
-    private Label accountBalance;
+    private Label kontostand;
 
     @FXML
     private Label accountName;
@@ -39,16 +39,17 @@ public class Accountview extends SuperController implements Initializable {
     public Accountview() throws TransactionAlreadyExistException, AccountAlreadyExistsException, TransactionAttributeException, IOException {
     }
 
-    public void update() {
-        accountBalance.setText("Kontostand: " + pb1.getAccountBalance(account));
-        transactionList.getItems().clear();
-        transactionList.getItems().addAll(pb1.getTransactions(account));
-    }
-    public void setAccount(String account) {
-        this.account = account;
-        accountName.setText(account);
-        transactionList.getItems().clear();
-        transactionList.getItems().addAll(pb1.getTransactions(account));
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        System.out.println(pb1.getAllAccounts());
+        if(pb1.getTransactions(account)!=null) {
+            transactionList.getItems().addAll(pb1.getTransactions(account));
+        }
+        ContextMenu contextMenu=new ContextMenu();
+        MenuItem MenuItemLöschen=new MenuItem("Löschen");
+        contextMenu.getItems().addAll(MenuItemLöschen);
+        transactionList.setContextMenu(contextMenu);
+        MenuItemLöschen.setOnAction(this::confirmationDialog);
     }
 
     public void switchToMainview(javafx.event.ActionEvent event) throws IOException {
@@ -59,251 +60,259 @@ public class Accountview extends SuperController implements Initializable {
         stage.show();
     }
 
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-
-            pb1.getAllAccounts();
-            System.out.println(pb1.getAllAccounts());
-            transactionList.getItems().addAll(pb1.getTransactions(account));
-            update();
-
+    public void setAccount(String temp_account){
+        account=temp_account;
+        accountName.setText(account);
+        transactionList.getItems().clear();
+        transactionList.getItems().addAll(pb1.getTransactions(account));
+        kontostand.setText("Kontostand: " + pb1.getAccountBalance(account));
     }
 
-    public void confirmationDialog(javafx.event.ActionEvent event) throws AccountDoesNotExistException, IOException, TransactionDoesNotExistException {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    public void sortAsc(javafx.event.ActionEvent event) {
+        transactionList.getItems().clear();
+        transactionList.getItems().addAll(pb1.getTransactionsSorted(account,true));
+    }
+    public void sortDesc(javafx.event.ActionEvent event) {
+        transactionList.getItems().clear();
+        transactionList.getItems().addAll(pb1.getTransactionsSorted(account,false));
+    }
+    public void sortTypePos(javafx.event.ActionEvent event) {
+        transactionList.getItems().clear();
+        transactionList.getItems().addAll(pb1.getTransactionsByType(account,true));
+    }
+    public void sortTypeNeg(javafx.event.ActionEvent event) {
+        transactionList.getItems().clear();
+        transactionList.getItems().addAll(pb1.getTransactionsByType(account,false));
+    }
+    public void update(){
+        transactionList.getItems().clear();
+        transactionList.getItems().addAll(pb1.getTransactions(account));
+        kontostand.setText("Kontostand: " + pb1.getAccountBalance(account));
+    }
+
+    public void confirmationDialog(javafx.event.ActionEvent event){
+        Alert alert=new Alert(Alert.AlertType.CONFIRMATION);
         alert.setContentText("Sind Sie sicher?");
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
-            pb1.removeTransaction("account1", transactionList.getSelectionModel().getSelectedItem());
-            transactionList.getItems().remove(transactionList.getSelectionModel().getSelectedItem());
+        Optional <ButtonType> result=alert.showAndWait();
+        if(result.get() == ButtonType.OK){
+            try {
+                pb1.removeTransaction(account, transactionList.getSelectionModel().getSelectedItem());
+                transactionList.getItems().remove(transactionList.getSelectionModel().getSelectedItem());
+            }catch(AccountDoesNotExistException e){
+                throw new RuntimeException(e);
+            }catch(IOException e) {
+            }catch(TransactionDoesNotExistException e) {
+             throw new RuntimeException(e);
+            }
         }
+        update();
     }
 
-    public void showTransactionsSortedAsc(javafx.event.ActionEvent event) {
-        transactionList.getItems().clear();
-        transactionList.getItems().addAll(pb1.getTransactionsSorted(account, true));
-    }
-
-    public void showTransactionsSortedDesc(javafx.event.ActionEvent event) {
-        transactionList.getItems().clear();
-        transactionList.getItems().addAll(pb1.getTransactionsSorted(account, false));
-    }
-
-    public void showTransactionsByTypePos(javafx.event.ActionEvent event) {
-        transactionList.getItems().clear();
-        transactionList.getItems().addAll(pb1.getTransactionsByType(account, true));
-    }
-
-    public void showTransactionsByTypeNeg(javafx.event.ActionEvent event) {
-        transactionList.getItems().clear();
-        transactionList.getItems().addAll(pb1.getTransactionsByType(account, false));
-    }
-
-    public void addTransactionDialog(javafx.event.ActionEvent event) throws AccountAlreadyExistsException {
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("", "Transfer", "Payment");
-        dialog.setTitle("Transaktion hinzufügen");
-        dialog.setHeaderText("Transaktion hinzufügen");
-        dialog.setContentText("Wählen Sie den Transaktionstyp:");
+    public void transactionAnlegen(javafx.event.ActionEvent event) {
+        ChoiceDialog dialog = new ChoiceDialog("Payment", "Payment", "Transfer");
+        dialog.setTitle("Transaktion Hinzufügen");
+        dialog.setHeaderText("Transaktion Hinzufügen");
+        dialog.setContentText("Transactionstyp: ");
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent()) {
             if (result.get().equals("Payment")) {
-                Dialog<Transaction> dialog1 = new Dialog<>();
+                Dialog<Transaction> dialogInfos = new Dialog<>();
                 GridPane gridPane = new GridPane();
 
-                Label datuml = new Label("Datum: ");
-                gridPane.add(datuml, 1, 1);
-                TextField datumField = new TextField();
-                gridPane.add(datumField, 2, 1);
+                Label label_datum = new Label("Datum: ");
+                gridPane.add(label_datum, 1, 1);
+                TextField feld_datum = new TextField();
+                gridPane.add(feld_datum, 2, 1);
 
-                Label betragl = new Label("Betrag: ");
-                gridPane.add(betragl, 1, 2);
-                TextField betragField = new TextField();
-                gridPane.add(betragField, 2, 2);
-                Label beschreibungl = new Label("Beschreibung: ");
-                gridPane.add(beschreibungl, 1, 3);
-                TextField beschreibung = new TextField();
-                gridPane.add(beschreibung, 2, 3);
-                Label incl = new Label("IncomingInterest: ");
-                gridPane.add(incl, 1, 4);
-                TextField inc = new TextField();
-                gridPane.add(inc, 2, 4);
-                Label outl = new Label("OutgoingInterest: ");
-                gridPane.add(outl, 1, 5);
-                TextField outField = new TextField();
-                gridPane.add(outField, 2, 5);
+                Label label_betrag = new Label("Betrag: ");
+                gridPane.add(label_betrag, 1, 2);
+                TextField feld_betrag = new TextField();
+                gridPane.add(feld_betrag, 2, 2);
+
+                Label label_beschreibung = new Label("Beschreibung: ");
+                gridPane.add(label_beschreibung, 1, 3);
+                TextField feld_beschreibung = new TextField();
+                gridPane.add(feld_beschreibung, 2, 3);
+
+                Label label_incInt = new Label("IncomingInterest: ");
+                gridPane.add(label_incInt, 1, 4);
+                TextField feld_incInt = new TextField();
+                gridPane.add(feld_incInt, 2, 4);
+
+                Label label_outInt = new Label("OutgoingInterest: ");
+                gridPane.add(label_outInt, 1, 5);
+                TextField feld_outInt = new TextField();
+                gridPane.add(feld_outInt, 2, 5);
+
 
                 ButtonType Ja = new ButtonType("Erstellen", ButtonBar.ButtonData.OK_DONE);
                 ButtonType Nein = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-                dialog1.getDialogPane().setContent(gridPane);
-                dialog1.getDialogPane().getButtonTypes().add(Ja);
-                dialog1.getDialogPane().getButtonTypes().add(Nein);
-                dialog1.setTitle("Payment");
-                dialog1.setResultConverter(dialogButton ->
+                dialogInfos.getDialogPane().setContent(gridPane);
+                dialogInfos.getDialogPane().getButtonTypes().add(Ja);
+                dialogInfos.getDialogPane().getButtonTypes().add(Nein);
+                dialogInfos.setTitle("Paymentdaten eingeben");
+                dialogInfos.show();
+                dialogInfos.setResultConverter(dialogButton ->
                 {
                     if (dialogButton == Ja) {
-                        if (!(datumField.getText().equals("") || betragField.getText().equals("") || beschreibung.getText().equals("") || inc.getText().equals("") || outField.getText().equals(""))) {
+                        if (!(feld_incInt.getText().equals("") || feld_outInt.getText().equals("") || feld_beschreibung.getText().equals("") || feld_betrag.getText().equals("") || feld_datum.getText().equals(""))) {
                             try {
-                                Double.parseDouble(betragField.getText());
+                                Double.parseDouble(feld_betrag.getText());
                             } catch (NumberFormatException e) {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Fehler");
                                 alert.setHeaderText("Fehler");
-                                alert.setContentText("Fehlerhafte Eingabe! Bitte nur double beim Betrag!");
+                                alert.setContentText("Fehlerhafte Eingabe beim Betrag. Betrag muss double sein.");
                                 alert.show();
                             }
                             try {
-                                Double.parseDouble(inc.getText());
+                                Double.parseDouble(feld_incInt.getText());
                             } catch (NumberFormatException e) {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Fehler");
                                 alert.setHeaderText("Fehler");
-                                alert.setContentText("Fehlerhafte Eingabe! Bitte nur double beim Incoming!");
+                                alert.setContentText("Fehlerhafte Eingabe bei IncomingInterest. IncomingInterest muss double sein.");
                                 alert.show();
                             }
                             try {
-                                Double.parseDouble(outField.getText());
+                                Double.parseDouble(feld_outInt.getText());
                             } catch (NumberFormatException e) {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Fehler");
                                 alert.setHeaderText("Fehler");
-                                alert.setContentText("Fehlerhafte Eingabe! Bitte nur double beim Outgoing!");
+                                alert.setContentText("Fehlerhafte Eingabe bei OutgoingInterest. OutgoingInterest muss double sein.");
                                 alert.show();
                             }
-
-                            if (Double.parseDouble(betragField.getText()) > 0 && (Double.parseDouble(inc.getText()) > 0 && Double.parseDouble(inc.getText()) <= 1) && (Double.parseDouble(outField.getText()) > 0 && Double.parseDouble(outField.getText()) <= 1)) {
+                            if(Double.parseDouble(feld_betrag.getText())<=0){
+                                Alert alert=new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Fehler");
+                                alert.setHeaderText("Fehler");
+                                alert.setContentText("Fehlerhafte Eingabe beim Betrag. Betrag muss positiv sein.");
+                            }
+                            if(Double.parseDouble(feld_incInt.getText())<=0||Double.parseDouble(feld_incInt.getText())>1){
+                                Alert alert=new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Fehler");
+                                alert.setHeaderText("Fehler");
+                                alert.setContentText("Fehlerhafte Eingabe bei IncomingInterest. INcomingInterest muss zwischen 0 und 1 liegen.");
+                            }
+                            if(Double.parseDouble(feld_outInt.getText())<=0||Double.parseDouble(feld_outInt.getText())>1){
+                                Alert alert=new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Fehler");
+                                alert.setHeaderText("Fehler");
+                                alert.setContentText("Fehlerhafte Eingabe bei OutgoingInterest. OutgoingInterest muss zwischen 0 und 1 liegen.");
+                            }
+                            if (Double.parseDouble(feld_betrag.getText()) > 0 &&
+                                    Double.parseDouble(feld_incInt.getText()) > 0 &&
+                                    Double.parseDouble(feld_incInt.getText()) <= 1 &&
+                                    Double.parseDouble(feld_outInt.getText()) > 0 &&
+                                    Double.parseDouble(feld_outInt.getText()) <= 1) {
                                 try {
-                                    Payment tmp = new Payment(datumField.getText(), Double.parseDouble(betragField.getText()),beschreibung.getText(),  Double.parseDouble(inc.getText()), Double.parseDouble(outField.getText()));
-                                    pb1.addTransaction(account, tmp);
-                                } catch (TransactionAlreadyExistException | AccountDoesNotExistException |
-                                         TransactionAttributeException |  IOException e) {
+                                    Payment pay = new Payment(feld_datum.getText(),
+                                            Double.parseDouble(feld_betrag.getText()),
+                                            feld_beschreibung.getText(),
+                                            Double.parseDouble(feld_incInt.getText()),
+                                            Double.parseDouble(feld_outInt.getText()));
+                                    pb1.addTransaction(account, pay);
+                                } catch (TransactionAttributeException | AccountDoesNotExistException |
+                                         TransactionAlreadyExistException | IOException e) {
                                     Alert alert = new Alert(Alert.AlertType.ERROR);
                                     alert.setTitle("Fehler");
                                     alert.setHeaderText("Fehler");
                                     alert.setContentText(e.toString());
                                     alert.show();
                                 }
-                                update();
-                            } else {
-                                Alert alert = new Alert(Alert.AlertType.ERROR);
-                                alert.setTitle("Fehler");
-                                alert.setHeaderText("Fehler");
-                                alert.setContentText("Fehlerhafte Eingabe! Betrag darf nicht negativ sein!, Incoming und Outgoing müssen zwischen 0 und 1 liegen!");
-                                alert.show();
                             }
-                        } else {
-                            Alert alert = new Alert(Alert.AlertType.ERROR);
-                            alert.setTitle("Fehler");
-                            alert.setHeaderText("Fehler");
-                            alert.setContentText("Fehler!, bitte füllen sie alle Felder aus!");
-                            alert.show();
                         }
                     }
+                    update();
                     return null;
                 });
-                dialog1.show();
-            } else if (result.get().equals("Transfer")) {
-                Dialog<Transaction> dialog2 = new Dialog<>();
+            } else {
+                Dialog<Transaction> dialogInfos = new Dialog<>();
                 GridPane gridPane = new GridPane();
 
-                Label datuml = new Label("Datum: ");
-                gridPane.add(datuml, 1, 1);
+                Label label_datum = new Label("Datum: ");
+                gridPane.add(label_datum, 1, 1);
+                TextField feld_datum = new TextField();
+                gridPane.add(feld_datum, 2, 1);
 
-                TextField datumField = new TextField();
-                gridPane.add(datumField, 2, 1);
+                Label label_betrag = new Label("Betrag: ");
+                gridPane.add(label_betrag, 1, 2);
+                TextField feld_betrag = new TextField();
+                gridPane.add(feld_betrag, 2, 2);
 
-                Label betragl = new Label("Betrag: ");
-                gridPane.add(betragl, 1, 2);
+                Label label_beschreibung = new Label("Beschreibung: ");
+                gridPane.add(label_beschreibung, 1, 3);
+                TextField feld_beschreibung = new TextField();
+                gridPane.add(feld_beschreibung, 2, 3);
 
-                TextField betragField = new TextField();
-                gridPane.add(betragField, 2, 2);
+                Label label_send = new Label("Sender: ");
+                gridPane.add(label_send, 1, 4);
+                TextField feld_send = new TextField();
+                gridPane.add(feld_send, 2, 4);
 
-                Label beschreibungl = new Label("Beschreibung: ");
-                gridPane.add(beschreibungl, 1, 3);
+                Label label_empf = new Label("Empfänger: ");
+                gridPane.add(label_empf, 1, 5);
+                TextField feld_empf = new TextField();
+                gridPane.add(feld_empf, 2, 5);
 
-                TextField beschreibung = new TextField();
-                gridPane.add(beschreibung, 2, 3);
-
-                Label senderl = new Label("sender: ");
-                gridPane.add(senderl, 1, 4);
-
-                TextField senderField = new TextField();
-                gridPane.add(senderField, 2, 4);
-
-                Label empaengerl = new Label("empfaenger: ");
-                gridPane.add(empaengerl, 1, 5);
-
-                TextField empaengerField = new TextField();
-                gridPane.add(empaengerField, 2, 5);
 
                 ButtonType Ja = new ButtonType("Erstellen", ButtonBar.ButtonData.OK_DONE);
                 ButtonType Nein = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-                dialog2.getDialogPane().setContent(gridPane);
-                dialog2.getDialogPane().getButtonTypes().add(Ja);
-                dialog2.getDialogPane().getButtonTypes().add(Nein);
-                dialog2.setTitle("Transfer");
-                dialog2.setResultConverter(dialogButton ->
+                dialogInfos.getDialogPane().setContent(gridPane);
+                dialogInfos.getDialogPane().getButtonTypes().add(Ja);
+                dialogInfos.getDialogPane().getButtonTypes().add(Nein);
+                dialogInfos.setTitle("Transferdaten eingeben");
+                dialogInfos.show();
+                dialogInfos.setResultConverter(dialogButton ->
                 {
                     if (dialogButton == Ja) {
-                        if (!(datumField.getText().equals("") || betragField.getText().equals("") || beschreibung.getText().equals("") || senderField.getText().equals("") || empaengerField.getText().equals(""))) {
+                        if (!(feld_send.getText().equals("") || feld_empf.getText().equals("") || feld_beschreibung.getText().equals("") || feld_betrag.getText().equals("") || feld_datum.getText().equals(""))) {
                             try {
-                                Double.parseDouble(betragField.getText());
+                                Double.parseDouble(feld_betrag.getText());
                             } catch (NumberFormatException e) {
                                 Alert alert = new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Fehler");
                                 alert.setHeaderText("Fehler");
-                                alert.setContentText("Fehlerhafte Eingabe! Bitte nur double beim Betrag!");
+                                alert.setContentText("Fehlerhafte Eingabe beim Betrag. Betrag muss double sein.");
                                 alert.show();
                             }
-                            if ((senderField.getText().equals(account) && !(empaengerField.getText().equals(account))) || (empaengerField.getText().equals(account) && !(senderField.getText().equals(account)))) {
-                                if (senderField.getText().equals(account)) {
-                                    try {
-                                        OutgoingTransfer tmp = new OutgoingTransfer(datumField.getText(), Double.parseDouble(betragField.getText()),beschreibung.getText(),  senderField.getText(), empaengerField.getText());
-                                        pb1.addTransaction(account, tmp);
-                                    } catch (TransactionAlreadyExistException | AccountDoesNotExistException |
-                                             TransactionAttributeException  e) {
-                                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                                        alert.setTitle("Fehler");
-                                        alert.setHeaderText("Fehler");
-                                        alert.setContentText(e.toString());
-                                        alert.show();
-                                    } catch (IOException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                } else {
-                                    try {
-                                        IncomingTransfer tmp = new IncomingTransfer(datumField.getText(), Double.parseDouble(betragField.getText()), beschreibung.getText(), senderField.getText(), empaengerField.getText());
-                                        pb1.addTransaction(account, tmp);
-                                    } catch (TransactionAlreadyExistException | AccountDoesNotExistException |
-                                             TransactionAttributeException  e) {
-                                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                                        alert.setTitle("Fehler");
-                                        alert.setHeaderText("Fehler");
-                                        alert.setContentText(e.toString());
-                                        alert.show();
-                                    } catch (IOException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                }
-                                update();
-                            } else {
-                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                            if(Double.parseDouble(feld_betrag.getText())<=0){
+                                Alert alert=new Alert(Alert.AlertType.ERROR);
                                 alert.setTitle("Fehler");
                                 alert.setHeaderText("Fehler");
-                                alert.setContentText("Fehlerhafte Eingabe! Sender und Empfänger müssen unterschiedlich sein!");
-                                alert.show();
+                                alert.setContentText("Fehlerhafte Eingabe beim Betrag. Betrag muss positiv sein.");
                             }
-                        } else {
-                            Alert alert = new Alert(Alert.AlertType.ERROR);
-                            alert.setTitle("Fehler");
-                            alert.setHeaderText("Fehler");
-                            alert.setContentText("Fehler!, bitte füllen sie alle Felder aus!");
-                            alert.show();
+                            if(feld_empf.getText().equals(feld_send.getText())){
+                                Alert alert=new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Fehler");
+                                alert.setHeaderText("Fehler");
+                                alert.setContentText("Fehlerhafte Eingabe beim Sender und Empfänger. Sender kann nicht Empfänger sein.");
+                            }
+
+                            if (Double.parseDouble(feld_betrag.getText()) > 0&& !(feld_empf.getText().equals(feld_send.getText()))) {
+                                try {
+                                    Transfer transfer = new Transfer(feld_datum.getText(),
+                                            Double.parseDouble(feld_betrag.getText()),
+                                            feld_beschreibung.getText(),
+                                            feld_send.getText(),
+                                            feld_empf.getText()) {
+                                    };
+                                    pb1.addTransaction(account, transfer);
+                                } catch (TransactionAttributeException | AccountDoesNotExistException |
+                                         TransactionAlreadyExistException | IOException e) {
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setTitle("Fehler");
+                                    alert.setHeaderText("Fehler");
+                                    alert.setContentText(e.toString());
+                                    alert.show();
+                                }
+                            }
                         }
                     }
+                    update();
                     return null;
                 });
-                dialog2.show();
-            } else {
-                System.out.println("Fehler");
             }
         }
     }

@@ -116,7 +116,7 @@ public abstract class Transfer extends Transaction{
      */
     @Override
     public boolean equals(Object obj) {
-        if (obj.getClass() != this.getClass()) {
+        if (obj==null||obj.getClass() != this.getClass()) {
             return false;
         }
         Transfer other = (Transfer) obj;

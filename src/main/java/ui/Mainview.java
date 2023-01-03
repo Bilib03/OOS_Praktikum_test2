@@ -7,6 +7,7 @@ import bank.exceptions.TransactionAttributeException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -39,13 +40,29 @@ public class Mainview extends SuperController implements Initializable {
             listView.getItems().addAll(test);
 
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem menuItem1 = new MenuItem("Edit");
-        MenuItem menuItem2 = new MenuItem("Delete");
-        contextMenu.getItems().addAll(menuItem1, menuItem2);
+        MenuItem menuItem1 = new MenuItem("Löschen");
+        MenuItem menuItem2 = new MenuItem("Auswählen");
+        contextMenu.getItems().addAll(menuItem2, menuItem1);
         listView.setContextMenu(contextMenu);
-        menuItem1.setOnAction(event -> {
+        menuItem1.setOnAction(this::confirmationDialog);
+
+        menuItem2.setOnAction(event ->{
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("/Accountview.fxml"));
+                FXMLLoader loader=new FXMLLoader(getClass().getClassLoader().getResource("Accountview.fxml"));
+                root = loader.load();
+                stage = (Stage) menuItem1.getParentPopup().getOwnerWindow();
+                Accountview accountview = loader.getController();
+                accountview.setAccount(listView.getSelectionModel().getSelectedItem());
+                stage.setScene(new Scene(root));
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        /*menuItem2.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("Accountview.fxml"));
                 root = loader.load();
                 Accountview accountview = loader.getController();
                 accountview.setAccount(listView.getSelectionModel().getSelectedItem());
@@ -56,46 +73,34 @@ public class Mainview extends SuperController implements Initializable {
             scene = new Scene(root);
             stage.setScene(scene);
             stage.show();
-        });
-        menuItem2.setOnAction(event -> {
-            try {
-                pb1.deleteAccount(listView.getSelectionModel().getSelectedItem());
-                listView.getItems().remove(listView.getSelectionModel().getSelectedItem());
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (AccountDoesNotExistException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
+        });*/
     }
+   public void textInputDialog(javafx.event.ActionEvent event)
+           throws AccountAlreadyExistsException, IOException {
+       TextInputDialog newAccDialog = new TextInputDialog("Name");
+       newAccDialog.setTitle("Account hinzufügen");
+       newAccDialog.setHeaderText("Fügen Sie einen neuen Account hinzu");
+       newAccDialog.setContentText("Accountname: ");
+       Optional<String> result = newAccDialog.showAndWait();
+       if (result.isPresent()) {
+           String accName = result.get();
+           pb1.createAccount(accName);
+           listView.getItems().add(accName);
+       }
+   }
 
-    public void textInputDialog(javafx.event.ActionEvent event) throws AccountAlreadyExistsException {
-        TextInputDialog dialog = new TextInputDialog("Name");
-        dialog.setTitle("Account hinzufügen");
-        dialog.setHeaderText("Account hinzufügen");
-        dialog.setContentText("Accountname:");
-
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            try {
-                pb1.createAccount(result.get());
-                listView.getItems().add(result.get());
-            } catch (AccountAlreadyExistsException e) {
-                System.out.println("Account already exists");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public void confirmationDialog(javafx.event.ActionEvent event) throws AccountDoesNotExistException, IOException {
+    public void confirmationDialog(javafx.event.ActionEvent event) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setContentText("Sind Sie sicher?");
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == ButtonType.OK) {
-            pb1.deleteAccount(listView.getSelectionModel().getSelectedItem());
-            listView.getItems().remove(listView.getSelectionModel().getSelectedItem());
+            try {
+                pb1.deleteAccount(listView.getSelectionModel().getSelectedItem());
+                listView.getItems().remove(listView.getSelectionModel().getSelectedItem());
+            } catch (AccountDoesNotExistException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+            }
         }
     }
 
